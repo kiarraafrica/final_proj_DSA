@@ -2169,3 +2169,160 @@ public:
             }
         }
     }
+
+    void puzzles(int board[9][9], bool fixed[9][9], bool userInput[9][9], int betAmount) {
+        int randomPuzzle = 1 + rand() % 3;
+
+        int board1[9][9] = {
+            {0, 0, 0, 2, 6, 0, 7, 0, 1},
+            {6, 8, 0, 0, 7, 0, 0, 9, 0},
+            {1, 9, 0, 0, 0, 4, 5, 0, 0},
+            {8, 2, 0, 1, 0, 0, 0, 4, 0},
+            {0, 0, 4, 6, 0, 2, 9, 0, 0},
+            {0, 5, 0, 0, 0, 3, 0, 2, 8},
+            {0, 0, 9, 3, 0, 0, 0, 7, 4},
+            {0, 4, 0, 0, 5, 0, 0, 3, 6},
+            {7, 0, 3, 0, 1, 8, 0, 0, 0}
+        };
+
+        int board2[9][9] = {
+            {1, 0, 0, 4, 8, 9, 0, 0, 6},
+            {7, 3, 0, 0, 0, 0, 0, 4, 0},
+            {0, 0, 0, 0, 0, 1, 2, 9, 5},
+            {0, 0, 7, 1, 2, 0, 6, 0, 0},
+            {5, 0, 0, 7, 0, 3, 0, 0, 8},
+            {0, 0, 6, 0, 9, 5, 7, 0, 0},
+            {9, 1, 4, 6, 0, 0, 0, 0, 0},
+            {0, 2, 0, 0, 0, 0, 0, 3, 7},
+            {8, 0, 0, 5, 1, 2, 0, 0, 4}
+        };
+
+        int board3[9][9] = {
+            {6, 5, 9, 0, 1, 0, 2, 8, 0},
+            {1, 0, 0, 0, 5, 0, 0, 3, 0},
+            {2, 0, 0, 8, 0, 0, 0, 1, 0},
+            {0, 0, 0, 1, 3, 5, 0, 7, 0},
+            {8, 0, 0, 9, 0, 0, 0, 0, 2},
+            {0, 0, 3, 0, 7, 8, 6, 4, 0},
+            {3, 0, 2, 0, 0, 9, 0, 0, 4},
+            {0, 0, 0, 0, 0, 1, 8, 0, 0},
+            {0, 0, 8, 7, 6, 0, 0, 0, 0}
+        };
+
+        switch (randomPuzzle) {
+        case 1:
+            memcpy(board, board1, sizeof(board1));
+            break;
+        case 2:
+            memcpy(board, board2, sizeof(board2));
+            break;
+        case 3:
+            memcpy(board, board3, sizeof(board3));
+            break;
+        }
+        start_game(board, fixed, userInput, betAmount);
+    }
+
+    void start_game(int board[9][9], bool fixed[9][9], bool userInput[9][9], int betAmount) {
+        int choice;
+        int row, col, num;
+        int tries = 3;
+
+        memset(userInput, false, sizeof(bool) * 9 * 9);
+
+        for (int i = 0; i < 9; ++i) {
+            for (int j = 0; j < 9; ++j) {
+                if (board[i][j] != 0) {
+                    fixed[i][j] = true;
+                }
+                else {
+                    fixed[i][j] = false;
+                }
+            }
+        }
+
+        while (true) {
+            sudoku_board(board, userInput);
+
+            if (!get_user_input(row, col, num)) {
+                continue;
+            }
+
+            if (row == -1 || col == -1 || num == -1) {
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                cout << "\nYou just forfeited $" << betAmount << ". Press Enter to return.";
+                user.addTotalLoss(betAmount);
+                cin.get();
+                userManager.clear_screen();
+                break;
+            }
+
+            if (row >= 0 && row < 9 && col >= 0 && col < 9 && num >= 1 && num <= 9) {
+                if (!fixed[row][col]) {
+                    board[row][col] = num;
+                    userInput[row][col] = true;
+                    userManager.clear_screen();
+                } else {
+                    userManager.clear_screen();
+                    cout << "You cannot change the initially given number.\n" << endl;
+                }
+            } else {
+                userManager.clear_screen();
+                cout << "\nInvalid input.\n" << endl;
+            }
+
+            if (board_complete(board)) {
+                sudoku_board(board, userInput);
+                cout << "\n[1] Submit Board [2] Continue Editting: ";
+                
+                if (!(cin >> choice)) {
+                    cin.clear();
+                    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                    userManager.clear_screen();
+                    cout << "Please enter a valid choice from the menu.\n" << endl;
+                    continue;
+                    }
+
+                if (choice == 1) {
+                    if (solution_checker(board)) {
+                        float winnings = bet_multiplier(tries, betAmount);
+                        cout << ANSI_COLOR_RED << "\nCONGRATULATIONS!" << ANSI_COLOR_RESET << " You have solved the puzzle." << endl;
+                        cout << "You have won $" << winnings << endl;
+                        cout << "\nPress Enter to return to the menu.";
+                        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                        cin.get();
+                        userManager.clear_screen();
+                        break;
+                    } else {
+                        cout << "\nPuzzle not solved." << endl;
+                        tries--;
+                        if (tries <= 0) {
+                            cout << "You have reached the maximum amount of tries. $" << betAmount << " will be deducted from your wallet." << endl;
+                            user.addTotalLoss(betAmount);
+                            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                            cout << "\nPress Enter to return to menu.";
+                            cin.get();
+                            userManager.clear_screen();
+                            user.subtractBalance(betAmount);
+                            break;
+                        } else {
+                            if (tries == 1) {
+                                cout << "You only have " << tries << " try left to solve the puzzle." << endl;
+                            } else {
+                                cout << "You only have " << tries << " tries left to solve the puzzle." << endl;
+                            }
+                            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                            cout << "\nPress Enter to continue playing.";
+                            cin.get();
+                            userManager.clear_screen();
+                        }
+                    }
+                } else if (choice == 2) {
+                    userManager.clear_screen();
+                } else {
+                    cout << "Invalid choice." << endl;
+                    userManager.clear_screen();
+                }
+            }
+        }
+    }
