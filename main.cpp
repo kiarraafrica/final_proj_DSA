@@ -1584,3 +1584,588 @@ public:
         }
     }
 };
+
+class Baccarat
+{
+private:
+    User &user;
+    UserManager &userManager;
+    Wallet &wallet;
+
+    typedef struct Bets {
+    string bet;
+    float amount;
+    } Bets;
+
+public:
+    Baccarat(User &user, UserManager &userManager, Wallet &wallet)
+        : user(user), userManager(userManager), wallet(wallet) {}
+
+    void baccarat_menu(){
+        int choice;
+
+        while(true){
+            cout << "+----------------------------------+" << endl;
+            cout << "|        Welcome to Baccarat!      |" << endl;
+            cout << "+----------------------------------+" << endl;
+            cout << "| Select an option:                |" << endl;
+            cout << "| [1] Start the Game               |" << endl;
+            cout << "| [2] Instructions                 |" << endl;
+            cout << "| [3] View Wallet                  |" << endl;
+            cout << "| [4] Return to Main Menu          |" << endl;
+            cout << "+----------------------------------+" << endl;
+            cout << " Enter you choice: ";
+
+            if (!(cin >> choice)){
+                cin.clear(); 
+                cin.ignore(numeric_limits<streamsize>::max(), '\n'); 
+                userManager.clear_screen();
+                cout << "Please enter a valid choice from the menu.\n" << endl;
+                continue;
+            }
+
+            switch (choice) {
+                case 1:
+                    userManager.clear_screen();
+                    betting_menu();
+                    break;
+                case 2:
+                    userManager.clear_screen();
+                    instructions();
+                    break;
+                case 3:
+                    userManager.clear_screen();
+                    wallet.view_wallet();
+                    break;
+                case 4:
+                    userManager.clear_screen();
+                    return;
+                    break;
+                default:
+                    userManager.clear_screen();
+                    cout << "Please enter a valid choice from the menu.\n" << endl;
+                    break;
+            }
+        }
+    }
+
+    void instructions(){
+        cout << "+----------------------------------------+" << endl;
+        cout << "|              INSTRUCTIONS              |" << endl;
+        cout << "+----------------------------------------+" << endl;
+        cout << "\nObjective:\n";
+        cout << " - The goal is to bet on the hand that you think will have a total value closest to 9." << endl;
+
+        cout << "\nCard Values:\n";
+        cout << " - 2-9: Face value" << endl;
+        cout << " - 10, Jack, Queen, King: 0 points" << endl;
+        cout << " - Ace: 1 point" << endl;
+
+        cout << "\nGame Play:\n";
+        cout << "1. Each round starts with the Player and Banker being dealt two cards each." << endl;
+        cout << "2. If either the Player or Banker has a total of 8 or 9, it's called a 'natural' and the game ends." << endl;
+        cout << "3. If neither has a natural, the Player and Banker may draw a third card based on specific rules." << endl;
+
+        cout << "\nPlayer Rules:\n";
+        cout << " - If the Player's total is 0-5, the Player draws a third card." << endl;
+        cout << " - If the Player's total is 6-7, the Player stands." << endl;
+
+        cout << "\nBanker Rules:\n";
+        cout << " - If the Player stands, the Banker draws a third card on a total of 0-5 and stands on 6-7." << endl;
+        cout << " - If the Player draws a third card, the Banker acts according to the following rules:\n";
+        cout << "   - Banker's total 0-2: Draws a card." << endl;
+        cout << "   - Banker's total 3: Draws a card unless the Player's third card is an 8." << endl;
+        cout << "   - Banker's total 4: Draws a card if the Player's third card is 2-7." << endl;
+        cout << "   - Banker's total 5: Draws a card if the Player's third card is 4-7." << endl;
+        cout << "   - Banker's total 6: Draws a card if the Player's third card is a 6 or 7." << endl;
+        cout << "   - Banker's total 7: Stands." << endl;
+
+        cout << "\nWinning:\n";
+        cout << " - The hand closest to 9 wins." << endl;
+        cout << " - If both hands have the same total, it is a tie." << endl;
+
+        userManager.press_return();
+    }
+
+    void betting_menu(){
+        Bets bet;
+        int betType = change_bet_type(bet);
+        if (betType == 0){
+            return;
+        } else{
+            bet.amount = get_bet_amount();
+            if (bet.amount == 0){
+                return;
+            }
+            userManager.clear_screen();
+            verify_bet(bet);
+        }
+        
+    }
+
+    int change_bet_type(Bets &bet){
+        int choice;
+        while (true){
+            cout << "+----------------------------------+" << endl;
+            cout << "|         Bet on who wins!         | " << endl;
+            cout << "+----------------------------------+" << endl;
+            cout << "| [1] Banker                       |" << endl;
+            cout << "| [2] Player                       |" << endl;
+            cout << "| [3] Tie                          |" << endl;
+            cout << "+----------------------------------+" << endl;
+            cout << "| [0] Cancel                       |" << endl;
+            cout << "+----------------------------------+" << endl;
+            cout << "Choose your bet: " ;
+
+            if (!(cin >> choice)){
+                cin.clear(); 
+                cin.ignore(numeric_limits<streamsize>::max(), '\n'); 
+                userManager.clear_screen();
+                cout << "\nPlease enter a valid choice from the menu." << endl;
+                continue;
+            }
+
+            switch (choice) {
+                case 0: 
+                    userManager.clear_screen();
+                    return 0;
+                case 1:
+                    userManager.clear_screen();
+                    bet.bet = "Banker";
+                    return 1;
+                case 2:
+                    userManager.clear_screen();
+                    bet.bet = "Player";
+                    return 1;
+                case 3:
+                    userManager.clear_screen();
+                    bet.bet = "Tie";
+                    return 1;
+                default:
+                    userManager.clear_screen();
+                    cout << "Please enter a valid choice from the menu.\n" << endl;
+                    break;
+            }
+        }
+    }
+
+    float get_bet_amount(){
+        float bet_amount;
+        while (true) {
+            cout << "Enter amount you want to bet (enter 0 to cancel): $";
+
+            if (cin >> bet_amount) {
+                if (bet_amount == 0) {
+                    userManager.clear_screen();
+                    return 0 ;
+                }
+                if (bet_amount > user.getBalance()) {
+                    userManager.clear_screen();
+                    cout << "Insufficient balance. You only have $" << user.getBalance() << " in your wallet.\n" << endl;
+                } else if (bet_amount > 0) {
+                    userManager.clear_screen();
+                    return bet_amount;
+                } else {
+                    userManager.clear_screen();
+                    cout << "Please enter a positive integer.\n" << endl;
+                }
+            } else {
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                userManager.clear_screen();
+                cout << "Please enter an integer.\n" << endl;
+            }
+        }
+    }
+
+    void verify_bet(Bets &bet){
+        int choice;
+
+        while (true) {
+            cout << "+----------------------------------+" << endl;
+            cout << "           "<< bet.bet << " for $" << bet.amount << endl;
+            cout << "+----------------------------------+" << endl;
+            cout << "| [1] Change bet                   |" << endl;
+            cout << "| [2] Change bet amount            |" << endl;
+            cout << "| [3] Finalize bet                 |" << endl;
+            cout << "+----------------------------------+" << endl;
+            cout << "| [0] Cancel                       |" << endl;
+            cout << "+----------------------------------+" << endl;
+            cout << "Choose your bet: " ;
+
+            if (!(cin >> choice)){
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                userManager.clear_screen();
+                cout << "Please enter a valid choice from the menu.\n" << endl;
+                continue;
+            }
+
+            switch (choice) {
+                case 0:
+                    userManager.clear_screen();
+                    return;
+                case 1:
+                    userManager.clear_screen();
+                    change_bet_type(bet);
+                    break;
+                case 2:
+                    userManager.clear_screen();
+                    change_bet_amount(bet);
+                    break;
+                case 3:
+                    userManager.clear_screen(); 
+                    cout << "Your bet of $" << bet.amount << " on " << bet.bet << " is confirmed." << endl;
+                    user.addTotalSpent(bet.amount);
+                    cin.ignore(numeric_limits<streamsize>::max(), '\n'); 
+                    cout << "\nPress Enter to continue.";
+                    cin.get();
+                    userManager.clear_screen();
+                    game_menu(bet);
+                    return;
+                default:
+                    userManager.clear_screen();
+                    cout << "Please enter a valid choice from the menu.\n" << endl;
+                    break;
+            }
+        }
+    }
+
+    void change_bet_amount(Bets &bet){
+        bet.amount = get_bet_amount();
+    }
+
+    void game_menu(Bets &bet) {
+        srand(static_cast<unsigned int>(time(0)));
+
+        vector<int> player_hand = deal_hand();
+        vector<int> banker_hand = deal_hand();
+
+        int player_value = calculate_hand_value(player_hand);
+        int banker_value = calculate_hand_value(banker_hand);
+
+        
+        display_hand("Player", player_hand);
+        display_hand("Banker", banker_hand);
+
+        
+        if (player_value <= 5) {
+            int player_third_card = rand() % 13 + 1;
+            player_hand.push_back(player_third_card);
+            player_value = calculate_hand_value(player_hand);
+            cout << "Player has added a third card\n" << endl;
+            display_hand("Player", player_hand);
+        }
+
+    
+        if (player_hand.size() == 3) {
+            if ((banker_value <= 2) || 
+                (banker_value == 3 && player_hand[2] != 8) ||
+                (banker_value == 4 && (player_hand[2] >= 2 && player_hand[2] <= 7)) ||
+                (banker_value == 5 && (player_hand[2] >= 4 && player_hand[2] <= 7)) ||
+                (banker_value == 6 && (player_hand[2] == 6 || player_hand[2] == 7))) {
+                int banker_third_card = rand() % 13 + 1;
+                banker_hand.push_back(banker_third_card);
+                banker_value = calculate_hand_value(banker_hand);
+                cout << "Banker has added a third card\n" << endl;
+                display_hand("Banker", banker_hand);
+            }
+        }
+
+        cout << "Press Enter to continue.";
+        cin.get();
+        userManager.clear_screen();
+        determine_winner(bet, player_value, banker_value);
+        cout << "\nPress Enter to return.";
+        cin.get();
+        userManager.clear_screen();
+        return;
+    }
+
+    vector<int> deal_hand() {
+        vector<int> hand;
+        for (int i = 0; i < 2; ++i) {
+            hand.push_back(rand() % 13 + 1);
+        }
+        return hand;
+    }
+
+    int calculate_hand_value(const vector<int> &hand) {
+        int value = 0;
+        for (int card : hand) {
+            if (card > 9) card = 0;
+            else if (card == 1) card = 1;
+            value += card;
+        }
+        return value % 10;
+    }
+
+    void display_hand(const string &name, const vector<int> &hand) {
+        cout << "------------------------------------------" << endl;
+        cout <<  name << " Hand:\t";
+        for (int card : hand) {
+                cout << "[" << card_name(card) << "] ";
+            }
+        cout << "\n------------------------------------------" << endl;
+        
+        cout << "\nValue: " << calculate_hand_value(hand) << "\n" << endl;
+    }
+
+    string card_name(int card_value) {
+        switch(card_value) {
+            case 1: return "Ace";
+            case 11: return "Jack";
+            case 12: return "Queen";
+            case 13: return "King";
+            default: return to_string(card_value);
+        }
+    }
+
+    void determine_winner(Bets &bet, int player_value, int banker_value) {
+    
+        cout << "+----------------------------------------+" << endl;
+        cout << "|                RESULTS                 |" << endl;
+        cout << "+----------------------------------------+" << endl;
+        cout << "             " << bet.bet << " for $" << bet.amount  << endl; 
+        cout << "+----------------------------------------+" << endl;
+        cout << "|    Player value    |   Banker value    |" << endl;
+        cout << "|          " << player_value << "         |         " <<  banker_value << "         |" << endl;
+        cout << "+----------------------------------------+\n" << endl;
+
+        if (player_value > banker_value) {
+            cout << "Winner: Player" << endl;
+            if (bet.bet == "Player") {
+                user.addBalance(bet.amount);
+                cout << ANSI_COLOR_RED << "\nCONGRATULATIONS!" << ANSI_COLOR_RESET << " You win $" << bet.amount << "!\n";
+            } else {
+                user.subtractBalance(bet.amount);
+                cout << "\nYou lose $" << bet.amount << ". Better luck next time!\n";
+                user.addTotalLoss(bet.amount);
+            }
+        } else if (banker_value > player_value) {
+            cout << "Winner: Banker" << endl;
+            if (bet.bet == "Banker") {
+                user.addBalance(bet.amount * 0.95) ;  
+                cout << ANSI_COLOR_RED << "\nCONGRATULATIONS!" << ANSI_COLOR_RESET << " You win $" << bet.amount * 0.95 << "!\n";
+            } else {
+                user.subtractBalance(bet.amount);
+                cout << "\nYou lose $" << bet.amount << ". Better luck next time!\n";
+                user.addTotalLoss(bet.amount);
+            }
+        } else {
+            cout << "It's a tie " << endl;;
+            if (bet.bet == "Tie") {
+                user.addBalance(bet.amount * 8);
+                cout << ANSI_COLOR_RED << "\nCONGRATULATIONS!" << ANSI_COLOR_RESET << " You win $" << bet.amount * 8 << "!\n";
+            } else {
+                user.subtractBalance(bet.amount);
+                cout << "\nYou lose $" << bet.amount << ". Better luck next time!\n";
+                user.addTotalLoss(bet.amount);
+            }
+        }
+    }
+
+};
+
+class Soduko
+{
+private:
+    User &user;
+    UserManager &userManager;
+    Wallet &wallet;
+
+
+public:
+    Soduko(User &user, UserManager &userManager, Wallet &wallet)
+        : user(user), userManager(userManager), wallet(wallet) {}
+
+    void displayNumberWithColor(int number, bool isUserInput) {
+        if (isUserInput) {
+            cout << ANSI_COLOR_YELLOW << number << ANSI_COLOR_RESET;
+        }
+        else {
+            cout << ANSI_COLOR_BLUE << number << ANSI_COLOR_RESET;
+        }
+    }
+
+    void soduko_menu() {
+        srand(static_cast<unsigned int>(time(0)));
+        int choice;
+        bool betConfirmed = false;
+        int betAmount = 0;
+
+        int board[9][9];
+        bool fixed[9][9] = { false };
+        bool userInput[9][9] = { false };
+
+        while (true) {
+            cout << "+----------------------------------+" << endl;
+            cout << "|       Welcome to Sudoku!         |" << endl;
+            cout << "+----------------------------------+" << endl;
+            cout << "| Select an option:                |" << endl;
+            cout << "| [1] Start the Game               |" << endl;
+            cout << "| [2] Instructions                 |" << endl;
+            cout << "| [3] View Wallet                  |" << endl;
+            cout << "| [4] Return to Main Menu          |" << endl;
+            cout << "+----------------------------------+" << endl;
+            cout << " Enter you choice: ";
+
+            if (!(cin >> choice)) {
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                userManager.clear_screen();
+                cout << "Please enter a valid choice from the menu.\n" << endl;
+                continue;
+            }
+
+            switch (choice) {
+            case 1:
+                userManager.clear_screen();
+                while (true) {
+                    int betAmount = get_bet_amount();
+                    if (betAmount == -1 ){
+                        break;
+                    }
+                    else if (betAmount > 0){
+                        int betResult = verify_bet(betAmount);
+                        if (betResult == 0){
+                            break;
+                        }
+                        else if (betResult == 2) {
+                            puzzles(board, fixed, userInput, betAmount);
+                            break;
+                        }
+                    }
+                }
+                break;
+            case 2:
+                userManager.clear_screen();
+                instructions();
+                break;
+            case 3:
+                userManager.clear_screen();
+                wallet.view_wallet();
+                break;
+            case 4:
+                userManager.clear_screen();
+                return;
+            default:
+                userManager.clear_screen();
+                cout << "Please enter a valid choice from the menu.\n" << endl;
+            }
+        }
+    }
+
+    void instructions() {
+        cout << "+----------------------------------------+" << endl;
+        cout << "|              INSTRUCTIONS              |" << endl;
+        cout << "+----------------------------------------+" << endl;
+
+        cout << "\nObjectives:" << endl;
+        cout << " - To fill a 9x9 grid with numbers so that each column, each row, and each of the nine \n" << endl;
+        cout << "   3x3 subgrids contain all the numbers from 1 to 9." << endl;
+
+        cout << "\nBasic Rules:" << endl;
+        cout << " 1. Grid Layout" << endl;
+        cout << "   - The grid is divided into nine 3x3 subgrids." << endl;
+        cout << "   - Each row has 9 cells." << endl;
+        cout << "   - Each column has 9 cells." << endl;
+        cout << " 2. Starting Grid" << endl;
+        cout << "   - The puzzle starts with some cells filled with numbers." << endl;
+        cout << "   - The difficulty of the puzzle depends on the number and placement of these givens." << endl;
+        cout << " 3. Filling the Grid" << endl;
+        cout << "   - Each row must contain the numbers 1-9 without repetition." << endl;
+        cout << "   - Each column must contain the numbers 1-9 without repetition." << endl;
+        cout << "   - Each 3x3 subgrid must contain the numbers 1-9 without repetition." << endl;
+        cout << " 4. No Guessing" << endl;
+        cout << "   - A valid sudoku puzzle should have only one solution and can be solved using logic alone." << endl;
+
+        cout << "\nMechanics of the game:" << endl;
+        cout << " 1. Choose a row" << endl;
+        cout << " 2. Choose a column" << endl;
+        cout << " 3. Input a number from 1-9" << endl;
+        cout << "\nWinning:" << endl;
+        cout << " - The game is won when all rows and columns are filled correctly." << endl;
+
+        userManager.press_return();
+    }
+
+    int get_bet_amount() {
+        int bet_amount = 0;
+
+        while (true) {
+            cout << "Enter amount you want to bet (enter 0 to cancel): $";
+
+            if (cin >> bet_amount) {
+                if (bet_amount == 0) {
+                    userManager.clear_screen();
+                    return -1;
+                }
+                if (bet_amount > user.getBalance()) {
+                    userManager.clear_screen();
+                    cout << "Insufficience balance. You only have $" << user.getBalance() << " in your wallet.\n" << endl;
+                }
+                else if (bet_amount > 0) {
+                    userManager.clear_screen();
+                    return bet_amount;
+                }
+                else {
+                    userManager.clear_screen();
+                    cout << "Please enter a positive integer.\n" << endl;
+                }
+            }
+            else {
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                userManager.clear_screen();
+                cout << "Please enter an integer.\n" << endl;
+            }
+        }
+    }
+
+    int verify_bet(int bet_amount) {
+        int choice;
+
+        while (true) {
+            cout << "+----------------------------------+" << endl;
+            cout << "|          Verify your bet         |" << endl;
+            cout << "+----------------------------------+" << endl;
+            cout << "               $" << bet_amount << endl;
+            cout << "+----------------------------------+" << endl;
+            cout << "| [1] Change bet                   |" << endl;
+            cout << "| [2] Confirm bet                  |" << endl;
+            cout << "+----------------------------------+" << endl;
+            cout << "| [0] Cancel                       |" << endl;
+            cout << "+----------------------------------+" << endl;
+            cout << "Enter your choice: ";
+
+            if (!(cin >> choice)) {
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                userManager.clear_screen();
+                cout << "Please enter a valid choice from the menu.\n" << endl;
+                continue;
+            }
+
+            switch (choice) {
+            case 1:
+                userManager.clear_screen();
+                return 1;
+            case 2:
+                userManager.clear_screen();
+                cout << "Your bet of $" << bet_amount << " has been confirmed." << endl;
+                user.subtractBalance(bet_amount);
+                user.addTotalSpent(bet_amount);
+                userManager.press_return();
+                userManager.clear_screen();
+                return 2;
+            case 0:
+                userManager.clear_screen();
+                return 0;
+            default:
+                userManager.clear_screen();
+                cout << "Please enter a valid choice from the menu.\n" << endl;
+                break;
+            }
+        }
+    }
