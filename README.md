@@ -79,10 +79,6 @@
     <td>>23-01292@g.batstate-u.edu.ph</td>
   </tr>
   <tr>
-    <td>Deduque, Julianne Antoinette Deduque</td>
-    <td>>22-07161@g.batstate-u.edu.ph</td>
-  </tr>
-  <tr>
     <td>Lalu, Jerzha Ara Ramil C.</td>
     <td>23-05464@g.batstate-u.edu.ph</td>
   </tr>
