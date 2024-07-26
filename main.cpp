@@ -531,3 +531,392 @@ public:
     }
 
 };
+
+class Lotto
+{
+private:
+    User &user;
+    UserManager &userManager;
+    Wallet &wallet;
+
+public:
+    Lotto(User &user, UserManager &userManager, Wallet &wallet)
+        : user(user), userManager(userManager), wallet(wallet) {}
+
+    void instructions(){
+        cout << "+----------------------------------------+" << endl;
+        cout << "|              INSTRUCTIONS              |" << endl;
+        cout << "+----------------------------------------+" << endl;
+        cout << "\nObjective:\n" << endl;
+        cout << "- The goal of the game is to match all 6 numbers of your bets with the 6 randomly" << endl;
+        cout << " generated winning numbers." << endl;
+
+        cout << "\nBetting:\n" << endl;
+        cout << "- You will be prompted to enter 6 different bets." << endl;
+        cout << "- Each bet must be a unique integer between 0 and the maximum number allowed." << endl;
+
+        cout << "\nWinning Numbers:\n" << endl;
+        cout << "- After entering your bets, the game will generate 6 random winning numbers." << endl;
+        cout << "- These numbers are also unique and fall within the same range as your bets." << endl;
+
+        cout << "\nMatching:\n" << endl;
+        cout << "- The game will compare your bets with the winning numbers." << endl;
+        cout << "- If all 6 of your bets match the winning numbers, you win!" << endl;
+        cout << "- Otherwise, you lose." << endl;
+
+        userManager.press_return();
+    }
+
+    void difficulty_menu(){
+        int choice;
+
+        while(true){
+            cout << "+----------------------------------+" << endl;
+            cout << "|        Difficulty Levels         | " << endl;
+            cout << "+----------------------------------+" << endl;
+            cout << "|                                  |" << endl;
+            cout << "| [1] Easy         | 1 - 19 | $300 |" << endl;
+            cout << "| [2] Intermediate | 1 - 39 | $200 |" << endl;
+            cout << "| [3] Difficult    | 1 - 59 | $100 |" << endl;
+            cout << "|                                  |" << endl;
+            cout << "+----------------------------------+" << endl;
+            cout << "| [0] Cancel                       |" << endl;
+            cout << "+----------------------------------+" << endl;
+            cout << "Choose difficulty: " ;
+
+            if (!(cin >> choice)){
+                cin.clear(); 
+                cin.ignore(numeric_limits<streamsize>::max(), '\n'); 
+                userManager.clear_screen();
+                cout << "Please enter a valid choice from the menu.\n" << endl;
+                continue;
+            }
+
+            switch (choice){
+                case 0:
+                    userManager.clear_screen();
+                    return;
+                    break;
+                case 1:
+                    if (bet_balance_check(300)){
+                        userManager.clear_screen();
+                        cout << "+----------------------------------+" << endl;
+                        cout << "|        EASY LEVEL: 1 - 19        |" << endl;
+                        cout << "+----------------------------------+" << endl;
+                        game_menu(19, 300);
+                        user.addTotalSpent(300);
+                    }
+                    break;
+                case 2:
+                    if (bet_balance_check(200)){
+                        userManager.clear_screen();
+                        cout << "+----------------------------------+" << endl;
+                        cout << "|     INTERMEDIATE LEVEL: 1 - 39   |" << endl;
+                        cout << "+----------------------------------+" << endl;
+                        game_menu(39, 200);
+                        user.addTotalSpent(200);
+                    }
+                    break;
+                case 3:
+                    if (bet_balance_check(100)){
+                        userManager.clear_screen();
+                        cout << "+----------------------------------+" << endl;
+                        cout << "|       DIFFICULT LEVEL: 1 - 59    |" << endl;
+                        cout << "+----------------------------------+" << endl;
+                        game_menu(59, 100);
+                        user.addTotalSpent(100);
+                    }
+                    break;
+                default:
+                    userManager.clear_screen();
+                    cout << "Please enter a valid choice from the menu.\n" << endl;
+                    break;
+            }
+        }
+    }
+
+    bool bet_balance_check(int bet){
+        if (user.getBalance() <  bet){
+            userManager.clear_screen();
+            cout << "Insufficient balance. You only have $" << user.getBalance() << " for a $" << bet << " bet.\n" << endl;
+            return false;
+        }
+        return true;
+    }
+
+    void game_menu(int max_num, int bet) {
+            srand((unsigned) time(NULL));
+
+            bool result = game(max_num);
+            if (result) {
+                cout << ANSI_COLOR_RED << "\nCONGRATULATIONS!" << ANSI_COLOR_RESET << " You won $" << user.getJackpot() << "!" << endl;
+                user.addBalance(user.getJackpot());
+            } else {
+                cout << "\nYou did not guess all of the winning numbers." << endl;
+                cout << "You lose $" << bet << "." << endl;
+                user.subtractBalance(bet);
+                user.addTotalLoss(bet);
+                user.addToJackpot(bet);
+            }
+
+            userManager.press_return();
+            return;
+        }
+
+    bool game(int max_num) {
+            int arr_bet[6];
+            int arr_wnums[6];
+
+            get_bets(arr_bet, max_num);
+
+            if (!verify_bets(arr_bet, max_num)) {
+                return false;
+            }
+
+            userManager.clear_screen();
+            cout << "+----------------------------------------+" << endl;
+            cout << "|                RESULTS                 |" << endl;
+            cout << "+----------------------------------------+\n" << endl;
+
+            cout << "BETS:" << endl;
+            for (int i = 0; i < 6; i++) {
+                cout << "[ " << arr_bet[i] << " ] ";
+            }
+
+            get_winning_numbers(arr_wnums, max_num);
+
+            for (int s = 0; s < 6; s++) {
+                cout << "[ " << arr_wnums[s] << " ] ";
+            }
+            cout << "\n\n+----------------------------------------+" << endl;
+
+            return bet_num_matches(arr_bet, arr_wnums);
+        }
+
+    void get_bets(int arr_bet[], int max_num) const {
+            cout << "\nEnter your bets: " << endl;
+            for (int i = 0; i < 6; i++) {
+                arr_bet[i] = get_unique_bet(arr_bet, i, max_num);
+            }
+        }
+
+    int get_unique_bet(int arr[], int size, int max_num) const {
+            int element;
+            bool unique;
+            bool valid;
+
+            do {
+                cout << "[" << size + 1 << "] -- ";
+                valid = true;
+
+                if (!(cin >> element)) {
+                    cin.clear();
+                    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                    cout << "\nPlease enter a valid integer.\n" << endl;
+                    valid = false;
+                }
+
+                if (valid && (element > max_num || element <= 0)) {
+                    cout << "\nBets must be between 1 and " << max_num << ".\n" << endl;
+                    valid = false;
+                }
+
+                if (valid) {
+                    unique = is_unique(arr, size, element);
+                    if (!unique) {
+                        cout << "\nYou have already bet on this number. Duplicate bets are not allowed. Please enter a different bet.\n" << endl;
+                    }
+                }
+            } while (!valid || !unique);
+
+            return element;
+        }
+
+    bool is_unique(int arr[], int size, int element) const {
+            for (int i = 0; i < size; ++i) {
+                if (arr[i] == element) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+    bool verify_bets(int arr[], int max_num) {
+            int choice;
+
+            userManager.clear_screen();
+            while (true) {
+                cout << "+----------------------------------------+" << endl;
+                cout << "|                  BETS                  | " << endl;
+                cout << "+----------------------------------------+\n" << endl;
+                for (int i = 0; i < 6; i++) {
+                    cout << "[ " << arr[i] << " ] ";
+                }
+
+                cout << "\n\n+----------------------------------------+" << endl;
+                cout << "| [1] Change a bet                       |" << endl;
+                cout << "| [2] Finalize bets                      |" << endl;
+                cout << "+----------------------------------------+" << endl;
+                cout << "| [0] Cancel                             | " << endl;
+                cout << "+----------------------------------------+" << endl;
+                cout << "\nChoose option: ";
+
+                if (!(cin >> choice)) {
+                    cin.clear();
+                    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                    userManager.clear_screen();
+                    cout << "Please enter a valid choice from the menu.\n" << endl;
+                    continue;
+                }
+
+                switch (choice) {
+                    case 0:
+                        userManager.clear_screen();
+                        main_menu();
+                        break;
+                    case 1:
+                        userManager.clear_screen();
+                        change_bet(arr, max_num);
+                        break;
+                    case 2:
+                        return true;
+                    default:
+                        userManager.clear_screen();
+                        cout << "Invalid choice. Please enter 1 or 2.\n" << endl;
+                        break;
+                }
+            }
+        }
+
+    void change_bet(int arr[], int max_num) {
+        int index, new_bet;
+
+        while (true) {
+            display_bets(arr);
+
+            cout << "\nEnter the position of the bet you want to change (enter 0 to cancel): ";
+
+            if (!(cin >> index)) {
+                cin.clear(); 
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                userManager.clear_screen();
+                cout << "Please enter an integer.\n" << endl;
+                continue;
+            } 
+            else if (index == 0) {
+                userManager.clear_screen();
+                return;  
+            } 
+            else if (index < 1 || index > 6) {
+                userManager.clear_screen(); 
+                cout << "Please enter a number between 1 and 6.\n" << endl;
+                continue;
+            }
+            else{
+                index--;
+                cout << "\nEnter the new bet: ";
+                if (!(cin >> new_bet) || new_bet < 0 || new_bet > max_num || !is_unique(arr, 6, new_bet)) {
+                    cin.clear(); 
+                    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                    userManager.clear_screen(); 
+                    cout << "Invalid bet. Please enter a unique number between 0 and " << max_num << ".\n" << endl;
+                    continue;
+                }
+                arr[index] = new_bet;
+                userManager.clear_screen();
+                break;
+            }
+        }
+    }
+
+    void display_bets(int arr[]) const {
+            cout << "Your bets: " << endl;
+            for (int j = 0; j < 6; j++) {
+                cout << "[" << j + 1 << "] -- " << arr[j] << endl;
+            }
+        }
+
+    void get_winning_numbers(int arr_wnums[], int max_num) const {
+            cout << "\n\nWINNING NUMBERS:" << endl;
+
+            for (int k = 0; k < 6; k++) {
+                arr_wnums[k] = get_unique_num(arr_wnums, k, max_num);
+            }
+        }
+
+    int get_unique_num(int arr[], int size, int max_num) const {
+            int random_num;
+            bool unique;
+            do {
+                random_num = 1 + rand() % max_num;
+                unique = is_unique(arr, size, random_num);
+            } while (!unique);
+            return random_num;
+        }
+
+    bool bet_num_matches(int bets[], int nums[]) const {
+            int match = 0;
+
+            for (int i = 0; i < 6; i++) {
+                for (int j = 0; j < 6; j++) {
+                    if (bets[i] == nums[j]) {
+                        match++;
+                        break;
+                    }
+                }
+            }
+
+            return match == 6;
+        }
+
+    void main_menu(){
+        int choice;
+
+        while (true){
+            cout << "+----------------------------------+" << endl;
+            cout << "|        Welcome to Lotto!         |" << endl;
+            cout << "+----------------------------------+" << endl;
+            cout << "          !!! Jackpot !!!" << endl;
+            cout << "             $" << int(user.getJackpot())<< endl;
+            cout << "+----------------------------------+" << endl;
+            cout << "| Select an option:                |" << endl;
+            cout << "| [1] Start the Game               |" << endl;
+            cout << "| [2] Instructions                 |" << endl;
+            cout << "| [3] View Wallet                  |" << endl;
+            cout << "| [4] Return to Main Menu          |" << endl;
+            cout << "+----------------------------------+" << endl;
+            cout << " Enter you choice: ";
+
+            if (!(cin >> choice)){
+                cin.clear(); 
+                cin.ignore(numeric_limits<streamsize>::max(), '\n'); 
+                userManager.clear_screen();
+                cout << "Please enter a valid choice from the menu.\n" << endl;
+                continue;
+            }
+
+            switch (choice) {
+                case 1:
+                    userManager.clear_screen();
+                    difficulty_menu();
+                    break;
+                case 2:
+                    userManager.clear_screen();
+                    instructions();
+                    break;
+                case 3:
+                    userManager.clear_screen();
+                    wallet.view_wallet();
+                    break;
+                case 4:
+                    userManager.clear_screen();
+                    return;
+                    break;
+                default:
+                    userManager.clear_screen();
+                    cout << "Please enter a valid choice from the menu.\n" << endl;
+                    break;
+            }
+        }
+    }
+};
