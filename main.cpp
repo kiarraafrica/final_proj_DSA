@@ -532,6 +532,168 @@ public:
 
 };
 
+class Slot {
+private:
+    User &user;
+    UserManager &userManager;
+    Wallet &wallet;
+
+public:
+    Slot(User &user, UserManager &userManager, Wallet &wallet)
+    : user(user), userManager(userManager), wallet(wallet) {}
+        
+    string slotArray[6] = {"7", "Orange", "Cherry", "Blueberry", "Watermelon", "Pear"};
+    string colors[6] = {"\033[0;36m", "\e[0;33m", "\033[0;31m", "\033[0;34m", "\033[0;35m", "\033[0;32m"};
+    const string RESET = "\033[0m";
+
+    void slotmachine_menu() {
+    int choice;    
+
+        while (true) {
+            cout << "+----------------------------------+" << endl;
+            cout << "|      Welcome to Slot Machine!    |" << endl;
+            cout << "+----------------------------------+" << endl;
+            cout << "| Select an option:                |" << endl;
+            cout << "| [1] Start the Game               |" << endl;
+            cout << "| [2] Instructions                 |" << endl;
+            cout << "| [3] Wallet                       |" << endl;
+            cout << "| [4] Return to Main Menu          |" << endl;
+            cout << "+----------------------------------+" << endl;
+            cout << " Enter your choice: ";
+            
+            if (!(cin >> choice)) {
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                userManager.clear_screen();
+                cout << "Please enter a valid choice from the menu.\n" << endl;
+                continue;
+            }
+
+            switch (choice) {
+	    	case 1:
+		    	userManager.clear_screen();
+                verify_bet();
+			    break;
+            case 2:
+                userManager.clear_screen();
+                instructions();
+                break;
+            case 3:
+                userManager.clear_screen();
+                wallet.view_wallet();
+                break;
+            case 4:
+                userManager.clear_screen();
+                return;
+                break;
+            default:
+                userManager.clear_screen();
+                cout << "Please enter a valid choice from the menu.\n" << endl;
+            }
+        }
+    }
+
+    void verify_bet(){
+        int choice;
+        while (true)
+        {
+            cout << "+----------------------------------------+" << endl;
+            cout << "|           A game costs $15             |" << endl;
+            cout << "+----------------------------------------+" << endl;
+            cout << "| Do you want to continue?               |" << endl;
+            cout << "| [1] Yes                                |" << endl;
+            cout << "| [2] No                                 |" << endl;
+            cout << "+----------------------------------------+" << endl;
+            cout << "Choose option: ";
+
+            if (!(cin >> choice)){
+                    cin.clear(); 
+                    cin.ignore(numeric_limits<streamsize>::max(), '\n'); 
+                    userManager.clear_screen();
+                    cout << "Please enter a valid choice from the menu.\n" << endl;
+                    continue;
+                }
+
+            if (choice == 1){
+                userManager.clear_screen();
+                user.addTotalSpent(15);
+                slot();
+                break;
+            } else if (choice == 2){
+                userManager.clear_screen();
+                return;
+            } else{
+                cin.clear(); 
+                cin.ignore(numeric_limits<streamsize>::max(), '\n'); 
+                userManager.clear_screen();
+                cout << "Please enter a valid choice from the menu.\n" << endl;
+                continue;
+            }
+        }
+
+    }
+
+    void instructions(){
+        cout << "+----------------------------------------+" << endl;
+        cout << "|              INSTRUCTIONS              |" << endl;
+        cout << "+----------------------------------------+" << endl;
+        cout << "\nObjective:\n" << endl;
+        cout << "- The goal of the game is to match all three symbols on the slot machine reels." << endl;
+
+        cout << "\nWinning:\n" << endl;
+        cout << "- If all three symbols match, you win the jackpot of $100." << endl;
+        cout << "- If the symbols do not match, you lose the bet." << endl;
+
+        userManager.press_return();
+    }
+
+    void slot() {
+        int choice;
+        int arraySize = sizeof(slotArray) / sizeof(slotArray[0]);
+        srand(static_cast<unsigned int>(time(0)));
+        
+        int randomIndex1 = rand() % arraySize;
+        int randomIndex2 = rand() % arraySize;
+        int randomIndex3 = rand() % arraySize;
+
+        string reel1 = slotArray[randomIndex1];
+        string reel2 = slotArray[randomIndex2];
+        string reel3 = slotArray[randomIndex3];
+
+        while (true)
+        {
+            cout << " ================ SLOT MACHINE ================" << endl << endl;
+            cout << "  ||  "<< colors[randomIndex1] << reel1 << RESET << "  |  " 
+                << colors[randomIndex2] << reel2 << RESET << "  |  " 
+                << colors[randomIndex3] << reel3 << RESET << "  ||" << endl;
+            cout << endl << " ==============================================" << endl;
+        
+            if ((reel1 == reel2) && (reel2 == reel3)) {
+                cout << endl << ANSI_COLOR_RED << "\t          JACKPOT!" << ANSI_COLOR_RESET << endl;
+                cout << "\t       You won $100\n" << endl;
+                user.addBalance(100);
+        
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                cout << "           Press Enter to return.";
+                cin.get();
+                userManager.clear_screen();
+                return;
+            }
+            else {
+                cout << "\n        You" << ANSI_COLOR_RED " LOSE" << ANSI_COLOR_RESET << "! Better luck next time!" << endl;
+                user.addTotalLoss(15);
+                user.subtractBalance(15);
+            
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                cout << "\n           Press Enter to return.";
+                cin.get();
+                userManager.clear_screen();
+                return;
+            }
+        }  
+    }
+};
+
 class Lotto
 {
 private:
@@ -2326,3 +2488,157 @@ public:
             }
         }
     }
+bool get_user_input(int& row, int& col, int& num) {
+        cout << "\nEnter row (1-9) or -1 to exit: ";
+        if (!(cin >> row)) {
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            userManager.clear_screen();
+            cout << "Please only enter numbers from 1-9.\n" << endl;
+            return false;
+        }
+
+        if (row == -1) return true;
+
+        if (row < 1 || row > 9) {
+            userManager.clear_screen();
+            cout << "Row out of bounds. Please enter a number from 1-9.\n" << endl;
+            return false;
+        }
+
+        cout << "Enter column (1-9) or -1 to exit: ";
+        if (!(cin >> col)) {
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            userManager.clear_screen();
+            cout << "Please only enter numbers from 1-9.\n" << endl;
+            return false;
+        }
+
+        if (col == -1) return true;
+
+        if (col < 1 || col > 9) {
+            userManager.clear_screen();
+            cout << "Column out of bounds. Please enter a number from 1-9.\n" << endl;
+            return false;
+        }
+
+        cout << "Enter number (1-9) or -1 to exit: ";
+        if (!(cin >> num)) {
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            userManager.clear_screen();
+            cout << "Please only enter numbers from 1-9.\n" << endl;
+            return false;
+        }
+
+        if (num == -1) return true;
+
+        if (num < 1 || num > 9) {
+            userManager.clear_screen();
+            cout << "Number out of bounds. Please enter a number from 1-9.\n" << endl;
+            return false;
+        }
+
+        row--;
+        col--;
+        return true;
+    }
+
+    void sudoku_board(int grid[9][9], bool userInput[9][9]) {
+        cout << "   ";
+        for (int col = 0; col < 9; col++) {
+            cout << col + 1 << " ";
+            if (col == 2 || col == 5)
+                cout << "| ";
+        }
+        cout << endl;
+        cout << "  ----------------------\n";
+
+        for (int row = 0; row < 9; row++) {
+            cout << row + 1 << "| ";
+            for (int col = 0; col < 9; col++) {
+                if (grid[row][col] != 0) {
+                    displayNumberWithColor(grid[row][col], userInput[row][col]);
+                    cout << " ";
+                }
+                else {
+                    cout << grid[row][col] << " ";
+                }
+                if (col == 2 || col == 5)
+                    cout << "| ";
+            }
+            cout << endl;
+
+            if (row == 2 || row == 5) {
+                cout << "  ----------------------" << endl;
+            }
+        }
+        cout << ANSI_COLOR_RESET;
+    }   
+
+    bool board_complete(int board[9][9]) {
+        for (int i = 0; i < 9; i++) {
+            for (int j = 0; j < 9; j++) {
+                if (board[i][j] == 0) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    bool solution_checker(int board[9][9]) {
+        for (int row = 0; row < 9; row++) {
+            for (int col = 0; col < 9; col++) {
+                if (board[row][col] != 0) {
+                    int num = board[row][col];
+                    board[row][col] = 0;
+                    if (!is_number_valid(board, row, col, num)) {
+                        board[row][col] = num;
+                        return false;
+                    }
+                    board[row][col] = num;
+                }
+            }
+        }
+        return true;
+    }
+
+    bool is_number_valid(int grid[9][9], int row, int col, int num) {
+        for (int x = 0; x < 9; x++)
+            if (grid[row][x] == num)
+                return false;
+
+        for (int x = 0; x < 9; x++)
+            if (grid[x][col] == num)
+                return false;
+
+        int startRow = row - row % 3, startCol = col - col % 3;
+        for (int i = 0; i < 3; i++)
+            for (int j = 0; j < 3; j++)
+                if (grid[i + startRow][j + startCol] == num)
+                    return false;
+
+        return true;
+    }
+
+    float bet_multiplier(int tries, int betAmount) {
+        float multiplier;
+
+        if (tries == 0) {
+            multiplier = 2.5;
+        }
+        else if (tries == 1) {
+            multiplier = 2.0;
+        }
+        else {
+            multiplier = 1.5;
+        }
+
+        float winnings = betAmount * multiplier;
+        user.addBalance(winnings);
+
+        return winnings;
+    }
+};
