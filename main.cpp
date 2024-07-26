@@ -2642,3 +2642,388 @@ bool get_user_input(int& row, int& col, int& num) {
         return winnings;
     }
 };
+
+class Casino {
+private:
+    User& user; 
+    UserManager& userManager; 
+    Wallet wallet; 
+    Lotto lotto; 
+    BlackJack blackjack;
+    Baccarat baccarat;
+    Soduko soduko;
+    Slot slot;
+    ColorGame colorgame;
+    UserProfile userProfile;
+
+public:
+    Casino(User& user, UserManager& userManager)
+        : user(user), 
+        userManager(userManager), 
+        wallet(user), 
+        lotto(user, userManager, wallet), 
+        blackjack(user, userManager, wallet),
+        baccarat(user, userManager, wallet), 
+        soduko(user, userManager, wallet),
+        slot(user, userManager, wallet),
+        colorgame(user, userManager, wallet),
+        userProfile(user, userManager) { }
+
+
+    void sign_up() {
+        cout << "+----------------------------------+" << endl;
+        cout << "|              Sign-Up             |" << endl;
+        cout << "+----------------------------------+" << endl;
+
+
+        string username;
+        while (true) {
+            username = userManager.get_username_input();
+            if (username == "x"){
+                userManager.clear_screen();
+                return;
+            }
+            if (!userManager.username_exists(username)) break;
+            cout << "Username already exists. Please choose a different username.\n";
+        }
+        user.setUsername(username);
+
+        string password = userManager.get_confirmed_password();
+        user.setPassword(password);
+
+        user.save_user();
+
+        userManager.clear_screen();
+        cout << "Sign-up successful! Welcome to \"What Are The Odds?\" " << username << "!" << endl;
+        userManager.press_return();
+    }
+
+    void log_in() {
+        cout << "+----------------------------------+" << endl;
+        cout << "|              Log-In              |" << endl;
+        cout << "+----------------------------------+" << endl;
+
+        
+        string username = userManager.get_username_input();
+        if (username == "x"){
+                userManager.clear_screen();
+                return;
+            }
+        cout << "Enter password: ";
+        string password = userManager.get_password_input();
+
+        if (user.load_user(username, password)) {
+            userManager.clear_screen();
+            cout << "Login successful! Welcome back " << username << "!" << endl;
+            userManager.press_return();
+            user_menu();
+        } else {
+            userManager.clear_screen();
+            cout << "Invalid username or password. Please try again." << endl;
+            userManager.press_return();
+        }
+    }
+    
+
+    void main_menu() {
+        int choice;
+
+        while (true) {
+            cout << "+----------------------------------+" << endl;
+            cout << "|       What Are The Odds?         |" << endl;
+            cout << "+----------------------------------+" << endl;
+            cout << "| Select an option:                |" << endl;
+            cout << "| [1] Sign Up                      |" << endl;
+            cout << "| [2] Log In                       |" << endl;
+            cout << "| [3] Exit                         |" << endl;
+            cout << "+----------------------------------+" << endl;
+            cout << " Enter your choice: ";
+
+            if (!(cin >> choice)) {
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                userManager.clear_screen();
+                cout << "Please enter a valid choice from the menu.\n" << endl;
+                continue;
+            }
+
+            switch (choice) {
+            case 1:
+                userManager.clear_screen();
+                sign_up();
+                break;
+            case 2:
+                userManager.clear_screen();
+                log_in();
+                break;
+            case 3:
+                userManager.clear_screen();
+                exit(0);
+            default:
+                userManager.clear_screen();
+                cout << "Please enter a valid choice from the menu.\n" << endl;
+            }
+        }
+    }
+
+    void user_menu(){
+        int choice;
+
+        while (true)
+        {
+            cout << "+----------------------------------+" << endl;
+            cout << "           Welcome " << user.getUsername() << "!"<<  endl;
+            cout << "+----------------------------------+" << endl;
+            cout << "| Select an option:                |" << endl;
+            cout << "| [1] View Account Profile         |" << endl;
+            cout << "| [2] View Games                   |" << endl;
+            cout << "| [3] View Wallet                  |" << endl;
+            cout << "+----------------------------------+" << endl;
+            cout << "| [4] Log-Out                      |" << endl;
+            cout << "+----------------------------------+" << endl;
+            cout << " Enter your choice: ";
+
+            if (!(cin >> choice)) {
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                userManager.clear_screen();
+                cout << "Please enter a valid choice from the menu.\n" << endl;
+                continue;
+            }
+
+            switch (choice) {
+            case 1:
+                userManager.clear_screen();
+                userProfile.user_profile();
+                break;
+            case 2:
+                userManager.clear_screen();
+                game_menu();
+                break;
+            case 3:
+                userManager.clear_screen();
+                wallet.view_wallet();
+                break;
+            case 4:
+                userManager.clear_screen();
+                return;
+            default:
+                userManager.clear_screen();
+                cout << "Please enter a valid choice from the menu.\n" << endl;
+            }
+        }
+        
+    }
+
+    void game_menu(){
+        int choice;
+
+        while (true) {
+            cout << "+----------------------------------+" << endl;
+            cout << "|       What Are The Odds?         |" << endl;
+            cout << "+----------------------------------+" << endl;
+            cout << "| Select an option:                |" << endl;
+            cout << "| [1] Luck Games                   |" << endl;
+            cout << "| [2] Card Games                   |" << endl;
+            cout << "| [3] Logic Games                  |" << endl;
+            cout << "+----------------------------------+" << endl;
+            cout << "| [4] Wallet                       |" << endl;
+            cout << "+----------------------------------+" << endl;
+            cout << "| [5] Return to main menu          |" << endl;
+            cout << "+----------------------------------+" << endl;
+            cout << " Enter your choice: ";
+
+            if (!(cin >> choice)) {
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                userManager.clear_screen();
+                cout << "Please enter a valid choice from the menu.\n" << endl;
+                continue;
+            }
+
+            switch (choice) {
+            case 1:
+                userManager.clear_screen();
+                luck_games_menu();
+                break;
+            case 2:
+                userManager.clear_screen();
+                card_games_menu();
+                break;
+            case 3:
+                userManager.clear_screen();
+                logic_games_menu();
+                break;
+            case 4:
+                userManager.clear_screen();
+                wallet.view_wallet();
+                break;
+            case 5:
+                userManager.clear_screen();
+                return;
+            default:
+                userManager.clear_screen();
+                cout << "Please enter a valid choice from the menu.\n" << endl;
+            }
+        }
+    }
+
+    void luck_games_menu(){
+        int choice;
+
+        while (true) {
+            cout << "+----------------------------------+" << endl;
+            cout << "|            Luck Games            |" << endl;
+            cout << "+----------------------------------+" << endl;
+            cout << "| Select an option:                |" << endl;
+            cout << "| [1] Slot                         |" << endl;
+            cout << "| [2] Color Game                   |" << endl;
+            cout << "| [3] Lotto                        |" << endl;
+            cout << "+----------------------------------+" << endl;
+            cout << "| [4] Wallet                       |" << endl;
+            cout << "+----------------------------------+" << endl;
+            cout << "| [5] Return to main menu          |" << endl;
+            cout << "+----------------------------------+" << endl;
+            cout << " Enter your choice: ";
+
+            if (!(cin >> choice)) {
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                userManager.clear_screen();
+                cout << "Please enter a valid choice from the menu.\n" << endl;
+                continue;
+            }
+
+            switch (choice) {
+            case 1:
+                userManager.clear_screen();
+                slot.slotmachine_menu();
+                break;
+            case 2:
+                userManager.clear_screen();
+                colorgame.colorgame_menu();
+                break;
+            case 3:
+                userManager.clear_screen();
+                lotto.main_menu();
+                break;
+            case 4:
+                userManager.clear_screen();
+                wallet.view_wallet();
+                break;
+            case 5:
+                userManager.clear_screen();
+                return;
+                break;
+            default:
+                userManager.clear_screen();
+                cout << "Please enter a valid choice from the menu.\n" << endl;
+            }
+        }
+    }
+
+    void card_games_menu(){
+        int choice;
+
+        while (true) {
+            cout << "+----------------------------------+" << endl;
+            cout << "|            Card Games            |" << endl;
+            cout << "+----------------------------------+" << endl;
+            cout << "| Select an option:                |" << endl;
+            cout << "| [1] BlackJack                    |" << endl;
+            cout << "| [2] Baccarat                     |" << endl;
+            cout << "+----------------------------------+" << endl;
+            cout << "| [3] Wallet                       |" << endl;
+            cout << "+----------------------------------+" << endl;
+            cout << "| [4] Return to main menu          |" << endl;
+            cout << "+----------------------------------+" << endl;
+            cout << " Enter your choice: ";
+
+            if (!(cin >> choice)) {
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                userManager.clear_screen();
+                cout << "Please enter a valid choice from the menu.\n" << endl;
+                continue;
+            }
+
+            switch (choice) {
+            case 1:
+                userManager.clear_screen();
+                blackjack.blackjack_menu();
+                break;
+            case 2:
+                userManager.clear_screen();
+                baccarat.baccarat_menu();
+                break;
+            case 3:
+                userManager.clear_screen();
+                wallet.view_wallet();
+                break;
+            case 4:
+                userManager.clear_screen();
+                return;
+                break;
+            default:
+                userManager.clear_screen();
+                cout << "Please enter a valid choice from the menu.\n" << endl;
+            }
+        }
+    }
+
+    void logic_games_menu(){
+        int choice;
+
+        while (true) {
+            cout << "+----------------------------------+" << endl;
+            cout << "|           Logic Games            |" << endl;
+            cout << "+----------------------------------+" << endl;
+            cout << "| Select an option:                |" << endl;
+            cout << "| [1] Sudoku                       |" << endl;
+            cout << "+----------------------------------+" << endl;
+            cout << "| [2] Wallet                       |" << endl;
+            cout << "+----------------------------------+" << endl;
+            cout << "| [3] Return to main menu          |" << endl;
+            cout << "+----------------------------------+" << endl;
+            cout << " Enter your choice: ";
+
+            if (!(cin >> choice)) {
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                userManager.clear_screen();
+                cout << "Please enter a valid choice from the menu.\n" << endl;
+                continue;
+            }
+
+            switch (choice) {
+            case 1:
+                userManager.clear_screen();
+                soduko.soduko_menu();
+                break;
+            case 2:
+                userManager.clear_screen();
+                wallet.view_wallet();
+                break;
+            case 3:
+                userManager.clear_screen();
+                return;
+                break;
+            default:
+                userManager.clear_screen();
+                cout << "Please enter a valid choice from the menu.\n" << endl;
+            }
+        }
+    }
+
+    
+};
+
+int main() {
+    User user; 
+    UserManager userManager; 
+
+    Casino casino(user, userManager); 
+
+    casino.main_menu();
+    return 0;
+}
